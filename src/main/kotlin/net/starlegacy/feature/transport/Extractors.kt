@@ -1,6 +1,7 @@
 package net.starlegacy.feature.transport
 
 import com.google.gson.Gson
+import net.horizonsend.ion.core.events.ExtractorAddEvent
 import java.io.File
 import java.nio.file.Files
 import java.util.Timer
@@ -330,6 +331,7 @@ object Extractors : SLComponent() {
 	}
 
 	fun add(world: World, coordinates: Vec3i): Boolean {
+		ExtractorAddEvent(world, coordinates).callEvent()
 		return getExtractorSet(world).add(coordinates)
 	}
 
