@@ -35,7 +35,7 @@ import org.bukkit.block.data.type.DaylightDetector
 import org.bukkit.event.EventPriority
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
-import org.bukkit.event.world.WorldInitEvent
+import org.bukkit.event.world.WorldLoadEvent
 import org.bukkit.event.world.WorldUnloadEvent
 import org.bukkit.inventory.InventoryHolder
 
@@ -71,7 +71,8 @@ object Extractors : SLComponent() {
 			remove(block.world, block.coordinates)
 		}
 
-		plugin.listen<WorldInitEvent> { event -> loadExtractors(event.world) }
+		plugin.listen<WorldLoadEvent> { event -> loadExtractors(event.world) }
+
 		plugin.listen<WorldUnloadEvent> { event -> unloadExtractors(event.world) }
 
 		val interval: Long = (1000 / extractorTicksPerSecond).toLong()
