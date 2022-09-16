@@ -11,6 +11,8 @@ import kotlin.math.max
 import kotlin.math.min
 import net.horizonsend.ion.core.events.CreateNationEvent
 import net.horizonsend.ion.core.events.CreateNationOutpostEvent
+import net.horizonsend.ion.core.feedback.FeedbackType
+import net.horizonsend.ion.core.feedback.sendFeedbackMessage
 import net.md_5.bungee.api.chat.TextComponent
 import net.starlegacy.cache.nations.NationCache
 import net.starlegacy.cache.nations.PlayerCache
@@ -45,7 +47,6 @@ import net.starlegacy.util.distance
 import net.starlegacy.util.fromLegacy
 import net.starlegacy.util.gray
 import net.starlegacy.util.joinToText
-import net.starlegacy.util.msg
 import net.starlegacy.util.plus
 import net.starlegacy.util.style
 import net.starlegacy.util.toCreditsString
@@ -78,13 +79,18 @@ internal object NationCommand : SLCommand() {
 		}
 	}
 
-	private fun validateColor(red: Int, green: Int, blue: Int, nationId: Oid<Nation>?): Color {
+	private fun validateColor(red: Int, green: Int, blue: Int, nationId: Oid<Nation>?, player: Player): Color {
 		failIf(sequenceOf(red, green, blue).any { it !in 0..255 })
 		{ "Red, green, and blue must be integers within 0-255" }
 
 		val color = Color.fromRGB(red, green, blue)
 
 		val query = if (nationId == null) EMPTY_BSON else Nation::_id ne nationId
+
+		if (1 - 0.299 * color.red + 0.587 * color.green+ 0.114 * color.blue / 255 > 0.5){
+			player.sendFeedbackMessage(FeedbackType.INFORMATION, "The color you have chosen is too dark, it has been defaulted to the default nation color.")
+			return Color.fromRGB(74, 65, 42)
+		}
 
 		for (results in Nation.findProps(query, Nation::name, Nation::color)) {
 			val nationName = results[Nation::name]
@@ -118,7 +124,7 @@ internal object NationCommand : SLCommand() {
 		requireNotInNation(sender)
 		requireMinLevel(sender, NATIONS_BALANCE.nation.minCreateLevel)
 		validateName(name, null)
-		val color = validateColor(red, green, blue, nationId = null)
+		val color = validateColor(red, green, blue, nationId = null, sender)
 
 		val realCost = NATIONS_BALANCE.nation.createCost
 		requireMoney(sender, realCost, "create a nation")
@@ -169,7 +175,7 @@ internal object NationCommand : SLCommand() {
 
 		if (!Nation.isInvited(nationId, settlementId)) {
 			Nation.addInvite(nationId, settlementId)
-			sender msg "&aInvited settlement ${getSettlementName(settlementId)} to your nation"
+			sender.sendFeedbackMessage(FeedbackType.SUCCESS,"&aInvited settlement ${getSettlementName(settlementId)} to your nation")
 			Notify.player(
 				player = leaderId,
 				message = "&bYour settlement is invited to the nation $nationName by ${sender.name}! " +
@@ -177,7 +183,7 @@ internal object NationCommand : SLCommand() {
 			)
 		} else {
 			Nation.removeInvite(nationId, settlementId)
-			sender msg "&eCancelled invite for settlement $settlementId to your nation"
+			sender.sendFeedbackMessage(FeedbackType.SUCCESS, "&eCancelled invite for settlement $settlementId to your nation")
 			Notify.player(
 				player = leaderId,
 				message = "&eYour settlement's invite to the nation $nationName has been revoked by ${sender.name}"
@@ -191,7 +197,7 @@ internal object NationCommand : SLCommand() {
 		requireNationPermission(sender, nationId, NationRole.Permission.SETTLEMENT_INVITE)
 
 		val invitedSettlements = Nation.findPropById(nationId, Nation::invites)
-		sender msg "&7Invited Settlements:&b ${invitedSettlements?.joinToString { SettlementCache[it].name }}"
+		sender.sendFeedbackMessage(FeedbackType.SUCCESS,"&7Invited Settlements:&b ${invitedSettlements?.joinToString { SettlementCache[it].name }}")
 	}
 
 	@Subcommand("join")
@@ -283,11 +289,11 @@ internal object NationCommand : SLCommand() {
 	fun onSetColor(sender: Player, red: Int, green: Int, blue: Int) = asyncCommand(sender) {
 		val nationId = requireNationIn(sender)
 		requireNationLeader(sender, nationId)
-		val color: Color = validateColor(red, green, blue, nationId)
+		val color: Color = validateColor(red, green, blue, nationId, sender)
 
 		Nation.setColor(nationId, color.asRGB())
 
-		sender msg "&aUpdated nation color."
+		sender.sendFeedbackMessage(FeedbackType.SUCCESS,"&aUpdated nation color.")
 	}
 
 	@Subcommand("set capital")
@@ -472,7 +478,7 @@ internal object NationCommand : SLCommand() {
 
 		lines += lineBreak().fromLegacy()
 
-		lines.forEach(sender::msg)
+		lines.forEach { sender.sendRichMessage(it.text) }
 	}
 
 	@Subcommand("info")
@@ -575,7 +581,7 @@ internal object NationCommand : SLCommand() {
 
 		lines += lineBreak().fromLegacy()
 
-		lines.forEach(sender::msg)
+		lines.forEach { sender.sendRichMessage(it.text) }
 	}
 
 	@Subcommand("role")
