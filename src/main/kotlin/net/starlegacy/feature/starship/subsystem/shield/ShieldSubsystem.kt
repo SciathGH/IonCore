@@ -30,6 +30,8 @@ abstract class ShieldSubsystem(
 		}
 	var isReinforcementEnabled = multiblock.isReinforced
 
+	var shieldsign = sign
+
 	fun isReinforcementActive(): Boolean {
 		return isReinforcementEnabled && powerRatio > 0.8
 	}

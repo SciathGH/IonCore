@@ -7,11 +7,21 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.sqrt
 import net.starlegacy.SLComponent
+import net.starlegacy.cache.nations.PlayerCache
+import net.starlegacy.database.schema.nations.NationRelation
 import net.starlegacy.feature.multiblock.Multiblocks
 import net.starlegacy.feature.multiblock.areashield.AreaShield
+import net.starlegacy.feature.nations.region.Regions
+import net.starlegacy.feature.nations.region.types.Region
+import net.starlegacy.feature.nations.region.types.RegionTerritory
+import net.starlegacy.feature.starship.PilotedStarships
+import net.starlegacy.listener.misc.ProtectionListener
 import net.starlegacy.util.Tasks
+import net.starlegacy.util.action
+import net.starlegacy.util.colorize
 import net.starlegacy.util.isInRange
 import net.starlegacy.util.isWallSign
+import net.starlegacy.util.msg
 import org.bukkit.Bukkit
 import org.bukkit.Color
 import org.bukkit.Location
@@ -19,6 +29,7 @@ import org.bukkit.Particle
 import org.bukkit.block.Block
 import org.bukkit.block.Sign
 import org.bukkit.configuration.file.YamlConfiguration
+import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.EventPriority
 import org.bukkit.event.block.BlockBreakEvent
@@ -26,6 +37,7 @@ import org.bukkit.event.block.BlockBurnEvent
 import org.bukkit.event.block.BlockExplodeEvent
 import org.bukkit.event.entity.EntityDamageEvent
 import org.bukkit.event.entity.EntityExplodeEvent
+import org.litote.kmongo.eq
 
 object AreaShields : SLComponent() {
 	val bypassShieldEvents = ConcurrentHashMap.newKeySet<BlockExplodeEvent>()
@@ -100,6 +112,27 @@ object AreaShields : SLComponent() {
 		return@filter shieldLoc.world == location.world && shieldLoc.isInRange(location, radius)
 	}
 
+	fun isTerritoryAlly(location: Location, player: Player): Boolean {
+		for (region in Regions.find(location).sortedByDescending { it.priority }) {
+			var nationterritory = (region as? RegionTerritory)!!.nation
+			var playernation = PlayerCache[player].nation
+			for (relation in NationRelation.find(NationRelation::nation eq nationterritory)) {
+				if (relation.other == playernation && (relation.actual == NationRelation.Level.ALLY) || (nationterritory == playernation)) {
+					return true
+				}
+			}
+			return false
+		}
+		return false
+	}
+
+	fun isAlliedShipShieldnearby(location: Location, areaShield: AreaShield): Boolean{
+		PilotedStarships.map.filter { it.value.world == location.world }.forEach {
+			if (isTerritoryAlly(location, it.key) && it.value.shields.any { it.shieldsign.location.isInRange(location, areaShield.radius.toDouble()) })return true
+		}
+		return false
+	}
+
 	@EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
 	fun onBlockExplode(event: BlockExplodeEvent) {
 		if (bypassShieldEvents.remove(event)) return
@@ -145,6 +178,13 @@ object AreaShields : SLComponent() {
 		usePower: Boolean
 	) {
 		val areaShields = getNearbyAreaShields(location, explosionSize)
+		areaShields.forEach {
+			val block = it.key.block
+			if (!block.type.isWallSign) return@forEach
+			val sign = block.getState(false) as Sign
+			val areaShieldthatisInquestion = Multiblocks[sign] as? AreaShield ?: return@forEach
+			if (isAlliedShipShieldnearby(location, areaShieldthatisInquestion)) return
+		}
 		var shielded = false
 		for (shieldLocation in areaShields.keys) {
 			val block = shieldLocation.block
