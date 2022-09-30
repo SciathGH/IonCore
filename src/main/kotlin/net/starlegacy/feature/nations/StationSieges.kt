@@ -4,6 +4,7 @@ import java.lang.System.currentTimeMillis
 import java.time.ZonedDateTime
 import java.util.Date
 import java.util.concurrent.TimeUnit
+import net.horizonsend.ion.core.events.StationAllyCapture
 import net.horizonsend.ion.core.events.StationCaptureEvent
 import net.horizonsend.ion.core.events.StationSiegeBeginEvent
 import net.horizonsend.ion.core.feedback.FeedbackType.USER_ERROR
@@ -286,7 +287,7 @@ object StationSieges : SLComponent() {
 			Notify online "${GOLD}Space Station ${station.name} has been captured by $playerName of $nationName from $oldNationName." +
 				" $nationName now has $nowCaptured stations!"
 			Notify discord "Space Station **${station.name}** has been captured by **$playerName of $nationName** from **$oldNationName**"
-			SLXP.addAsync(player, NATIONS_BALANCE.capturableStation.siegerXP)
+			StationCaptureEvent(player, NATIONS_BALANCE.capturableStation.siegerXP).callEvent()
 			Tasks.sync {
 				for (otherPlayer in world.players) {
 					if (otherPlayer.slPlayerId == slPlayerId) {
@@ -300,11 +301,10 @@ object StationSieges : SLComponent() {
 					if (!station.contains(otherPlayer.location)) {
 						continue
 					}
-					SLXP.addAsync(otherPlayer, NATIONS_BALANCE.capturableStation.siegerAllyXP)
+					StationAllyCapture(player, NATIONS_BALANCE.capturableStation.siegerAllyXP).callEvent()
 				}
 			}
 		}
-		StationCaptureEvent(player).callEvent()
 	}
 
 	private fun isInBigShip(player: Player): Boolean {

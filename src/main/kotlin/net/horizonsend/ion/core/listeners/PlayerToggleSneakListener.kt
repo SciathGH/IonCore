@@ -18,7 +18,7 @@ import org.bukkit.event.player.PlayerToggleSneakEvent
 object PlayerToggleSneakListener : SLEventListener() {
 	@EventHandler(priority = EventPriority.MONITOR)
 	fun onPlayerToggleSneakEvent(event: PlayerToggleSneakEvent) {
-		ActiveStarships.findByPilot(event.player) ?: return
+		if(ActiveStarships.findByPilot(event.player) != null) return
 		if (event.player.inventory.itemInMainHand.type != Material.CLOCK && !event.isSneaking) return
 
 		val below = event.player.location.block.getRelative(BlockFace.DOWN)

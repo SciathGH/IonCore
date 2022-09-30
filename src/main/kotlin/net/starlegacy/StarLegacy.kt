@@ -9,6 +9,7 @@ import java.util.Locale
 import net.horizonsend.ion.core.NewPlayerProtection
 import net.horizonsend.ion.core.commands.AdminCommands
 import net.horizonsend.ion.core.commands.GracePeriod
+import net.horizonsend.ion.core.commands.MigrateToRanktracks
 import net.horizonsend.ion.core.commands.RainbowProjectileCommand
 import net.horizonsend.ion.core.commands.Starships
 import net.horizonsend.ion.core.listeners.BowHitListener
@@ -53,7 +54,6 @@ import net.starlegacy.command.nations.roles.SettlementRoleCommand
 import net.starlegacy.command.nations.settlementZones.SettlementPlotCommand
 import net.starlegacy.command.nations.settlementZones.SettlementZoneCommand
 import net.starlegacy.command.progression.AdvanceAdminCommand
-import net.starlegacy.command.progression.BuyXPCommand
 import net.starlegacy.command.progression.XPCommand
 import net.starlegacy.command.space.PlanetCommand
 import net.starlegacy.command.space.SpaceWorldCommand
@@ -377,7 +377,6 @@ class StarLegacy : JavaPlugin() {
 			TransportDebugCommand,
 			PlanetSpawnMenuCommand,
 			ShuttleCommand,
-			BuyXPCommand,
 			RainbowProjectileCommand,
 
 			SettlementCommand,
@@ -423,7 +422,8 @@ class StarLegacy : JavaPlugin() {
 			Starships(),
 			GracePeriod,
 			NewPlayerProtection,
-			AdminCommands
+			AdminCommands,
+			MigrateToRanktracks
 		)
 
 	private fun registerCommands() {

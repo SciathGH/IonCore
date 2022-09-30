@@ -139,7 +139,6 @@ object ShipKillXP : SLComponent() {
 			val xp = ((sqrt(killedSize.pow(2.0) / sqrt(killedSize * 0.00005))) * percent).toInt()
 
 			if (xp > 0) {
-				SLXP.addAsync(player, xp)
 				log.info("Gave ${player.name} $xp XP for ship-killing $killedName")
 			}
 			var pointsrn = 0
@@ -147,7 +146,7 @@ object ShipKillXP : SLComponent() {
 				pointsrn = points
 
 				killMessage(killedName, damager, data)
-				ShipKillEvent(getPlayer(killed)!!, getPlayer(damager.id)!!).callEvent()
+				ShipKillEvent(getPlayer(killed)!!, getPlayer(damager.id)!!, xp).callEvent()
 			}
 		}
 	}

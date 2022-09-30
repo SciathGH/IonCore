@@ -50,7 +50,9 @@ data class SLPlayer(
 	/** The settlement they're current a member of */
 	var settlement: Oid<Settlement>? = null,
 	/** The nation their settlement is currently in. Needs to be updated whenever the settlement nation updates. */
-	var nation: Oid<Nation>? = null
+	var nation: Oid<Nation>? = null,
+	/** If the player has migrated to ranktrack xp **/
+	var hasMigrated: Boolean = false
 ) : DbObject {
 	companion object : DbObjectCompanion<SLPlayer, SLPlayerId>(
 		SLPlayer::class, setup = {

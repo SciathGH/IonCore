@@ -1,5 +1,6 @@
 package net.starlegacy.feature.starship
 
+import net.horizonsend.ion.core.bridge
 import net.starlegacy.feature.progression.Levels
 import net.starlegacy.util.setDisplayNameAndGet
 import net.starlegacy.util.setLoreAndGet
@@ -264,8 +265,15 @@ enum class StarshipType(
 			)
 		)
 
-	fun canUse(player: Player): Boolean =
-		player.hasPermission("starships.anyship") || player.hasPermission(overridePermission) || Levels[player] >= minLevel
+	fun canUse(player: Player): Boolean {
+		return player.hasPermission("starships.anyship") || player.hasPermission(overridePermission) || (((bridge.getRanktrackDisplayName(
+			player
+		) == "Outlaw" || bridge.getRanktrackDisplayName(player) == "Privateer") && isWarship) && bridge.getLevelEquivalentForPlayer(
+			player
+		) >= minLevel) || ((bridge.getRanktrackDisplayName(player) == "Industrialist") && bridge.getLevelEquivalentForPlayer(
+			player
+		) / 2 >= minLevel)
+	}
 
 	companion object {
 		fun getUnlockedTypes(player: Player): List<StarshipType> = values()

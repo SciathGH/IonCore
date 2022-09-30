@@ -30,7 +30,7 @@ object ShipmentBalancing : SLComponent() {
 		)
 
 		data class ImportExportSection(
-			val baseCrateXP: Double = 2.0,
+			val baseCrateXP: Double = 100.0,
 			val minXPFactor: Double = 0.5,
 			val maxXPFactor: Double = 1.5
 		)

@@ -4,7 +4,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.Event
 import org.bukkit.event.HandlerList
 
-class StationCaptureEvent(val player: Player) : Event(true) {
+class StationCaptureEvent(val player: Player, val xp: Int) : Event(true) {
 	override fun getHandlers(): HandlerList {
 		return handlerList
 	}

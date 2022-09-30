@@ -24,6 +24,7 @@ import net.starlegacy.util.nms
 import org.bukkit.Location
 import org.bukkit.World
 import org.bukkit.entity.Animals
+import org.bukkit.entity.EnderCrystal
 import org.bukkit.entity.Entity
 import org.bukkit.entity.Player
 import org.bukkit.util.Vector
@@ -137,6 +138,11 @@ abstract class StarshipMovement(val starship: ActiveStarship, val newWorld: Worl
 					}
 
 					is Animals -> {
+						if (starship.isWithinHitbox(entity)) {
+							passengers.add(entity)
+						}
+					}
+					is EnderCrystal -> {
 						if (starship.isWithinHitbox(entity)) {
 							passengers.add(entity)
 						}

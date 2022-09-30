@@ -276,6 +276,8 @@ object ShipmentManager : SLComponent() {
 			return
 		}
 
+		var xp = 0.0 // total SLXP to reward the player
+
 		Tasks.async {
 			/* go async to fill in shipment info. Doesn't necessarily contain every original shipment. */
 			val deliveries: Map<String, Delivery> = fillShipmentInfo(detectedShipments, player, city)
@@ -290,7 +292,6 @@ object ShipmentManager : SLComponent() {
 
 				val updatedShipments = mutableSetOf<String>() // the shipments that were updated
 				var credits = 0.0 // total credits to give to the player in revenue
-				var xp = 0.0 // total SLXP to reward the player
 
 				for ((index: Int, item: ItemStack?) in player.inventory.contents!!.withIndex()) {
 					if (item == null) {
@@ -374,16 +375,12 @@ object ShipmentManager : SLComponent() {
 				val tax = (totalRevenue * taxPercent).roundToInt()
 				totalRevenue -= tax
 
-				if (xp > 0) {
-					SLXP.addAsync(player, xp.roundToInt())
-				}
-
 				val playernationid = PlayerCache[player].nation
 
 				val capturedStationCount =
 					min(CapturableStation.count(CapturableStation::nation eq playernationid).toInt(), 6)
 				val siegeBonusPercent = capturedStationCount * 5
-				val siegeBonus = totalRevenue * siegeBonusPercent / 100
+				val siegeBonus = totalRevenue * (siegeBonusPercent / 100)
 
 				player.sendFeedbackAction(
 					FeedbackType.INFORMATION,
@@ -403,7 +400,7 @@ object ShipmentManager : SLComponent() {
 				}
 			}
 		}
-		CompleteCargoRunEvent(player).callEvent()
+		CompleteCargoRunEvent(player, xp.toInt()).callEvent()
 	}
 
 	private fun giveSettlementProfit(playerName: String, city: TradeCityData, tax: Int) {

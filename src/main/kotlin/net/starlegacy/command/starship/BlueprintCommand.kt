@@ -50,10 +50,6 @@ import org.litote.kmongo.save
 @CommandAlias("blueprint")
 object BlueprintCommand : SLCommand() {
 
-	private fun getMaxBlueprints(player: Player): Int {
-		return Levels[player] * 3 + 20
-	}
-
 	private fun validateName(name: String) {
 		failIf(name != name.lowercase(Locale.getDefault())) {
 			"Name must be lowercase"
@@ -84,8 +80,8 @@ object BlueprintCommand : SLCommand() {
 		pilotLoc = Vec3i(pilotLoc.x - schem.origin.x, pilotLoc.y - schem.origin.y, pilotLoc.z - schem.origin.z)
 
 		if (createNew) {
-			failIf(Blueprint.count(Blueprint::owner eq slPlayerId) > getMaxBlueprints(sender)) {
-				"You can only have up to ${getMaxBlueprints(sender)} blueprints."
+			failIf(Blueprint.count(Blueprint::owner eq slPlayerId) > 100) {
+				"You can only have up to 100 blueprints."
 			}
 			Blueprint.create(slPlayerId, name, starship.data.type, pilotLoc, starship.blockCount, data)
 			sender msg "&aSaved blueprint $name"
